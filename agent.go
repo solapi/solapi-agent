@@ -8,6 +8,7 @@ import (
   "syscall"
   "time"
   "unsafe"
+  "runtime"
   "encoding/json"
   "io/ioutil"
   "database/sql"
@@ -286,7 +287,23 @@ func init() {
 }
 
 func main() {
-  srv, err := daemon.New(name, description, daemon.UserAgent)
+  daemonType := daemon.SystemDaemon
+  goos := runtime.GOOS
+  switch goos {
+    case "windows":
+      daemonType = daemon.SystemDaemon
+      fmt.Println("Windows")
+    case "darwin":
+      daemonType = daemon.UserAgent
+      fmt.Println("MAC")
+    case "linux":
+      daemonType = daemon.SystemDaemon
+      fmt.Println("Linux")
+    default:
+      fmt.Printf("%s.\n", goos)
+  }
+
+  srv, err := daemon.New(name, description, daemonType)
   if err != nil {
     fmt.Println("test")
     errlog.Println("Error: ", err)
