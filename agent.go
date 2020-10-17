@@ -41,6 +41,8 @@ var client *solapi.Client
 
 var db *sql.DB
 
+var homedir string = "/opt/agent"
+
 // Service has embedded daemon
 type Service struct {
   daemon.Daemon
@@ -81,8 +83,13 @@ func (service *Service) Manage() (string, error) {
 
   var err error
 
+  agentHome := os.Getenv("AGENT_HOME")
+  if len(agentHome) > 0 {
+    homedir = agentHome
+  }
+
   var b []byte
-	b, err = ioutil.ReadFile("./db.json")
+	b, err = ioutil.ReadFile(homedir + "/db.json")
 	if err != nil {
 		fmt.Println(err)
 		return "db.json 로딩 오류", nil
@@ -143,8 +150,6 @@ func pollMsg() {
       if count == 0 {
         params := make(map[string]string)
         result, err := client.Messages.CreateGroup(params)
-        printObj(result)
-        fmt.Println(result.GroupId)
         if err != nil {
           fmt.Println(err)
         }
@@ -180,7 +185,6 @@ func pollMsg() {
         fmt.Println(err)
         continue
       }
-      printObj(result2)
       for i, res := range(result2.ResultList) {
         _, err = db.Exec("UPDATE msg SET result = json_object('messageId', ?, 'groupId', ?, 'statusCode', ?, 'statusMessage', ?) WHERE id = ?", res.MessageId, groupId, res.StatusCode, res.StatusMessage,idList[i])
         if err != nil {
@@ -211,12 +215,12 @@ func pollLastReport() {
     var id uint32
     var messageId string
     var statusCode string
+    var messageIds []string
     for rows.Next() {
       rows.Scan(&id, &messageId, &statusCode)
-      if syncMsgStatus(db, messageId, statusCode) == false {
-        _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?), updatedAt = NOW() WHERE id = ?", "3040", id)
-      }
+      messageIds = append(messageIds, messageId)
     }
+    syncMsgStatus(messageIds, statusCode, "3040")
   }
 }
 
@@ -224,7 +228,7 @@ func pollResult() {
   for {
     stdlog.Println("Polling Result...")
     time.Sleep(time.Second * 2)
-    rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt > SUBDATE(NOW(), INTERVAL 72 HOUR) AND updatedAt < SUBDATE(NOW(), INTERVAL (10 * (reportAttempts + 1)) SECOND) AND reportAttempts < 10 AND statusCode IN ('2000', '3000')")
+    rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt > SUBDATE(NOW(), INTERVAL 72 HOUR) AND updatedAt < SUBDATE(NOW(), INTERVAL (10 * (reportAttempts + 1)) SECOND) AND reportAttempts < 10 AND statusCode IN ('2000', '3000') LIMIT 1000")
     if err != nil {
       fmt.Println(err)
     }
@@ -233,21 +237,21 @@ func pollResult() {
     var id uint32
     var messageId string
     var statusCode string
+    var messageIds []string
     for rows.Next() {
       rows.Scan(&id, &messageId, &statusCode)
 
       _, err = db.Exec("UPDATE msg SET reportAttempts = reportAttempts + 1, updatedAt = NOW() WHERE id = ?", id)
-
-      syncMsgStatus(db, messageId, statusCode)
+      messageIds = append(messageIds, messageId)
     }
+    syncMsgStatus(messageIds, statusCode, "")
   }
 }
 
-func syncMsgStatus(db *sql.DB, messageId string, statusCode string) bool {
+func syncMsgStatus(messageIds []string, statusCode string, defaultCode string) {
+  b, _ := json.Marshal(messageIds)
   params := make(map[string]string)
-  params["criteria"] = "messageId"
-  params["cond"] = "eq"
-  params["value"] = messageId
+  params["messageIds"] = string(b)
 
   result, err := client.Messages.GetMessageList(params)
   printObj(result)
@@ -257,17 +261,15 @@ func syncMsgStatus(db *sql.DB, messageId string, statusCode string) bool {
 
   for i, res := range(result.MessageList) {
     fmt.Println(i)
-    printObj(res)
     if res.StatusCode != statusCode {
       _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?), updatedAt = NOW() WHERE messageId = ?", res.StatusCode, res.MessageId)
       if err != nil {
         panic(err)
       }
-      return true
+    } else {
+      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, res.MessageId)
     }
   }
-
-  return false
 }
 
 func printObj(obj interface{}) {
