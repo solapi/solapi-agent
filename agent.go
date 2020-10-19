@@ -129,7 +129,7 @@ func pollMsg() {
   for {
     stdlog.Println("Polling Msg...")
     time.Sleep(time.Second * 1)
-    rows, err := db.Query("SELECT id, payload FROM msg WHERE sent = false AND sendAttempts < 3")
+    rows, err := db.Query("SELECT id, payload FROM msg WHERE sent = false AND sendAttempts < 3 LIMIT 10000")
     if err != nil {
       fmt.Println(err)
     }
@@ -162,7 +162,7 @@ func pollMsg() {
         fmt.Println(err)
       }
       fmt.Sprintf("id: %u", id)
-      _, err = db.Exec("UPDATE msg SET sent = true WHERE id = ?", id)
+      _, err = db.Exec("UPDATE msg SET sendAttempts = sendAttempts + 1 WHERE id = ?", id)
       if err != nil {
         fmt.Println(err)
         continue
@@ -186,7 +186,7 @@ func pollMsg() {
         continue
       }
       for i, res := range(result2.ResultList) {
-        _, err = db.Exec("UPDATE msg SET result = json_object('messageId', ?, 'groupId', ?, 'statusCode', ?, 'statusMessage', ?) WHERE id = ?", res.MessageId, groupId, res.StatusCode, res.StatusMessage,idList[i])
+        _, err = db.Exec("UPDATE msg SET result = json_object('messageId', ?, 'groupId', ?, 'statusCode', ?, 'statusMessage', ?), sent = true WHERE id = ?", res.MessageId, groupId, res.StatusCode, res.StatusMessage, idList[i])
         if err != nil {
           fmt.Println(err)
           continue
@@ -220,7 +220,9 @@ func pollLastReport() {
       rows.Scan(&id, &messageId, &statusCode)
       messageIds = append(messageIds, messageId)
     }
-    syncMsgStatus(messageIds, statusCode, "3040")
+    if len(messageIds) > 0 {
+      syncMsgStatus(messageIds, statusCode, "3040")
+    }
   }
 }
 
@@ -244,14 +246,16 @@ func pollResult() {
       _, err = db.Exec("UPDATE msg SET reportAttempts = reportAttempts + 1, updatedAt = NOW() WHERE id = ?", id)
       messageIds = append(messageIds, messageId)
     }
-    syncMsgStatus(messageIds, statusCode, "")
+    if len(messageIds) > 0 {
+      syncMsgStatus(messageIds, statusCode, "")
+    }
   }
 }
 
 func syncMsgStatus(messageIds []string, statusCode string, defaultCode string) {
   b, _ := json.Marshal(messageIds)
   params := make(map[string]string)
-  params["messageIds"] = string(b)
+  params["messageIds[in]"] = string(b)
 
   result, err := client.Messages.GetMessageList(params)
   printObj(result)
