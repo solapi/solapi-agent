@@ -1,6 +1,43 @@
 # Solapi Agent
 
-## 설치
+## DB 준비
+아래 내용으로 DB 및 계정을 만들어 주세요.
+```
+CREATE DATABASE msg;
+CREATE USER 'msg'@'localhost' IDENTIFIED BY 'msg';
+GRANT ALL PRIVILEGES ON msg.* TO 'msg'@'localhost';
+```
+아래 스키마로 테이블을 만들어 주세요.
+```
+CREATE TABLE msg (
+  id integer  AUTO_INCREMENT primary key,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  sendAttempts SMALLINT DEFAULT 0,
+  reportAttempts SMALLINT DEFAULT 0,
+  `to` VARCHAR(20) AS (payload->>'$.to') STORED,
+  `from` VARCHAR(20) AS (payload->>'$.from') STORED,
+  groupId VARCHAR(255) AS (result->>'$.groupId') STORED,
+  messageId VARCHAR(255) AS (result->>'$.messageId') STORED,
+  statusCode VARCHAR(255) AS (result->>'$.statusCode') STORED,
+  statusMessage VARCHAR(255) AS (result->>'$.statusMessage') STORED,
+  payload JSON,
+  result JSON default NULL,
+  sent BOOLEAN default false,
+  KEY (`createdAt`),
+  KEY (`updatedAt`),
+  KEY (`sendAttempts`),
+  KEY (`reportAttempts`),
+  KEY (`to`),
+  KEY (`from`),
+  KEY (groupId),
+  KEY (messageId),
+  KEY (statusCode),
+  KEY (sent)
+) DEFAULT CHARSET=utf8mb4;
+```
+
+## 서비스 데몬 설치
 
 /opt/agent 디렉토리를 만들고 아래로 에이전트 실행파일을 복사합니다.
 ```
