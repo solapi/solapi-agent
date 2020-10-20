@@ -28,12 +28,22 @@ type DBConfig struct {
   Port int `json:"port"`
 }
 
+type APIConfig struct {
+  APIKey     string `json:"apiKey"`
+  APISecret  string `json:"APISecret"`
+  Protocol   string `json:"Protocol"`
+  Domain     string `json:"Domain"`
+  Prefix     string `json:"Prefix"`
+  AppId      string `json:"AppId"`
+}
+
 const (
   name        = "solapi"
   description = "Solapi Agent Service"
 )
 
 var dbconf DBConfig
+var apiconf APIConfig
 
 var stdlog, errlog *log.Logger
 
@@ -88,17 +98,23 @@ func (service *Service) Manage() (string, error) {
     homedir = agentHome
   }
 
-  var b []byte
-	b, err = ioutil.ReadFile(homedir + "/db.json")
-	if err != nil {
-		fmt.Println(err)
-		return "db.json 로딩 오류", nil
-	}
-	json.Unmarshal(b, &dbconf)
-  connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", dbconf.User, dbconf.Password, dbconf.Host, dbconf.Port, dbconf.DBName)
+  connectionString, _ := getConnectionString(homedir)
   fmt.Println(connectionString)
 
+  err = getAPIConfig(homedir, &apiconf)
+  if err != nil {
+    panic(err)
+  }
+
   client = solapi.NewClient()
+	client.Messages.Config = map[string]string{
+	  "APIKey": apiconf.APIKey,
+    "APISecret": apiconf.APISecret,
+    "Protocol": apiconf.Protocol,
+    "Domain": apiconf.Domain,
+    "Prefix": apiconf.Prefix,
+	}
+
   db, err = sql.Open("mysql", connectionString)
   if err != nil {
     panic(err)
@@ -123,6 +139,31 @@ func (service *Service) Manage() (string, error) {
   }
 
   return usage, nil
+}
+
+func getConnectionString(homedir string) (string, error) {
+  var b []byte
+	b, err := ioutil.ReadFile(homedir + "/db.json")
+	if err != nil {
+		fmt.Println(err)
+		return "db.json 로딩 오류", err
+	}
+	json.Unmarshal(b, &dbconf)
+  connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", dbconf.User, dbconf.Password, dbconf.Host, dbconf.Port, dbconf.DBName)
+  fmt.Println(connectionString)
+  return connectionString, nil
+}
+
+func getAPIConfig(homedir string, apiconf *APIConfig) error {
+  var b []byte
+	b, err := ioutil.ReadFile(homedir + "/config.json")
+	if err != nil {
+		fmt.Println(err)
+    return err
+	}
+	json.Unmarshal(b, &apiconf)
+  fmt.Println(apiconf)
+  return nil
 }
 
 func pollMsg() {
@@ -206,7 +247,7 @@ func pollLastReport() {
   for {
     stdlog.Println("Polling Last Report...")
     time.Sleep(time.Second * 2)
-    rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt > SUBDATE(NOW(), INTERVAL 72 HOUR) AND statusCode IN ('2000', '3000')")
+    rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt < SUBDATE(NOW(), INTERVAL 72 HOUR) AND statusCode IN ('2000', '3000')")
     if err != nil {
       fmt.Println(err)
     }
@@ -266,12 +307,12 @@ func syncMsgStatus(messageIds []string, statusCode string, defaultCode string) {
   for i, res := range(result.MessageList) {
     fmt.Println(i)
     if res.StatusCode != statusCode {
-      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?), updatedAt = NOW() WHERE messageId = ?", res.StatusCode, res.MessageId)
+      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", res.StatusCode, res.MessageId, res.Reason)
       if err != nil {
         panic(err)
       }
     } else {
-      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, res.MessageId)
+      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, res.MessageId, "전송시간 초과")
     }
   }
 }
