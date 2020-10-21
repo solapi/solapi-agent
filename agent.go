@@ -328,8 +328,7 @@ func printObj(obj interface{}) {
 
 func init() {
   stdlog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-  errlog = log.New(os.Stderr, "", log.Ldate|log.Ltime)
-
+  errlog = log.New(os.Stderr, "", log.Ldate | log.Ltime | log.LstdFlags | log.Lshortfile)
 }
 
 func main() {
