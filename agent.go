@@ -9,6 +9,7 @@ import (
   "time"
   "unsafe"
   "runtime"
+  "strconv"
   "encoding/json"
   "io/ioutil"
   "database/sql"
@@ -99,7 +100,7 @@ func (service *Service) Manage() (string, error) {
   }
 
   connectionString, _ := getConnectionString(homedir)
-  stdlog.Println(connectionString)
+  stdlog.Println("Connectin String:", connectionString)
 
   err = getAPIConfig(homedir, &apiconf)
   if err != nil {
@@ -168,7 +169,6 @@ func getAPIConfig(homedir string, apiconf *APIConfig) error {
 
 func pollMsg() {
   for {
-    stdlog.Println("Polling Msg...")
     time.Sleep(time.Second * 1)
     rows, err := db.Query("SELECT id, payload FROM msg WHERE sent = false AND sendAttempts < 3 LIMIT 10000")
     if err != nil {
@@ -221,12 +221,12 @@ func pollMsg() {
       var msgParams = make(map[string]interface{})
       msgParams["messages"] = messageList
 
-      result2, err := client.Messages.AddGroupMessage(groupId, msgParams)
+      result, err := client.Messages.AddGroupMessage(groupId, msgParams)
       if err != nil {
         errlog.Println(err)
         continue
       }
-      for i, res := range(result2.ResultList) {
+      for i, res := range(result.ResultList) {
         _, err = db.Exec("UPDATE msg SET result = json_object('messageId', ?, 'groupId', ?, 'statusCode', ?, 'statusMessage', ?), sent = true WHERE id = ?", res.MessageId, groupId, res.StatusCode, res.StatusMessage, idList[i])
         if err != nil {
           errlog.Println(err)
@@ -234,19 +234,20 @@ func pollMsg() {
         }
       }
 
-      _, err = client.Messages.SendGroup(groupId)
-      if err != nil {
-        errlog.Println(err)
+      groupInfo, err2 := client.Messages.SendGroup(groupId)
+      if err2 != nil {
+        errlog.Println(err2)
         continue
       }
+      stdlog.Print("Group Messaging")
+      printObj(groupInfo.Count)
     }
   }
 }
 
 func pollLastReport() {
   for {
-    stdlog.Println("Polling Last Report...")
-    time.Sleep(time.Second * 2)
+    time.Sleep(time.Second * 1)
     rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt < SUBDATE(NOW(), INTERVAL 72 HOUR) AND statusCode IN ('2000', '3000')")
     if err != nil {
       errlog.Println(err)
@@ -269,9 +270,8 @@ func pollLastReport() {
 
 func pollResult() {
   for {
-    stdlog.Println("Polling Result...")
-    time.Sleep(time.Second * 2)
-    rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt > SUBDATE(NOW(), INTERVAL 72 HOUR) AND updatedAt < SUBDATE(NOW(), INTERVAL (10 * (reportAttempts + 1)) SECOND) AND reportAttempts < 10 AND statusCode IN ('2000', '3000') LIMIT 1000")
+    time.Sleep(time.Millisecond * 500)
+    rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt > SUBDATE(NOW(), INTERVAL 72 HOUR) AND updatedAt < SUBDATE(NOW(), INTERVAL (10 * (reportAttempts + 1)) SECOND) AND reportAttempts < 10 AND statusCode IN ('2000', '3000') LIMIT 100")
     if err != nil {
       errlog.Println(err)
     }
@@ -297,21 +297,23 @@ func syncMsgStatus(messageIds []string, statusCode string, defaultCode string) {
   b, _ := json.Marshal(messageIds)
   params := make(map[string]string)
   params["messageIds[in]"] = string(b)
+  params["limit"] = strconv.Itoa(len(messageIds))
+
+  stdlog.Println("Sync Count:", len(messageIds))
 
   result, err := client.Messages.GetMessageList(params)
-  printObj(result)
   if err != nil {
     errlog.Println(err)
   }
 
   for _, res := range(result.MessageList) {
     if res.StatusCode != statusCode {
-      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", res.StatusCode, res.MessageId, res.Reason)
+      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", res.StatusCode, res.Reason, res.MessageId)
       if err != nil {
         panic(err)
       }
     } else {
-      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, res.MessageId, "전송시간 초과")
+      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, "전송시간 초과", res.MessageId)
     }
   }
 }
