@@ -7,9 +7,13 @@ github.com/solapi/solapi-go v0.0.0-20201012033119-74e3782957e2 h1:7qYmCXbc/jKvzb
 github.com/solapi/solapi-go v0.0.0-20201012033119-74e3782957e2/go.mod h1:jRSwb5YRLT/HWWCaeOfVaRgQA1quMEsQw+GG3Mvsaxo=
 github.com/solapi/solapi-go v0.0.0-20201020062305-2e60f1956ce6 h1:muFMmKL6Vlxu943QnWYU0SueLvrE4vtEnwGQunW6B4s=
 github.com/solapi/solapi-go v0.0.0-20201020062305-2e60f1956ce6/go.mod h1:jRSwb5YRLT/HWWCaeOfVaRgQA1quMEsQw+GG3Mvsaxo=
+github.com/solapi/solapi-go v0.0.0-20201021080142-934f35b8e3fd h1:AQXoQJ72B9MYVAz+s808anG8uQnV+I4G8Lxq6zU21AY=
+github.com/solapi/solapi-go v0.0.0-20201021080142-934f35b8e3fd/go.mod h1:jRSwb5YRLT/HWWCaeOfVaRgQA1quMEsQw+GG3Mvsaxo=
 github.com/takama/daemon v1.0.0 h1:XS3VLnFKmqw2Z7fQ/dHRarrVjdir9G3z7BEP8osjizQ=
 github.com/takama/daemon v1.0.0/go.mod h1:gKlhcjbqtBODg5v9H1nj5dU1a2j2GemtuWSNLD5rxOE=
 golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6 h1:X9xIZ1YU8bLZA3l6gqDUHSFiD0GFI9S548h6C8nDtOY=
 golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13 h1:5jaG59Zhd+8ZXe8C+lgiAGqkOaZBruqrWclLkgAww34=
 golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20201020230747-6e5568b54d1a h1:e3IU37lwO4aq3uoRKINC7JikojFmE5gO7xhfxs8VC34=
+golang.org/x/sys v0.0.0-20201020230747-6e5568b54d1a/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
