@@ -99,7 +99,7 @@ func (service *Service) Manage() (string, error) {
   }
 
   connectionString, _ := getConnectionString(homedir)
-  fmt.Println(connectionString)
+  stdlog.Println(connectionString)
 
   err = getAPIConfig(homedir, &apiconf)
   if err != nil {
@@ -145,12 +145,12 @@ func getConnectionString(homedir string) (string, error) {
   var b []byte
 	b, err := ioutil.ReadFile(homedir + "/db.json")
 	if err != nil {
-		fmt.Println(err)
+		errlog.Println(err)
 		return "db.json 로딩 오류", err
 	}
 	json.Unmarshal(b, &dbconf)
   connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", dbconf.User, dbconf.Password, dbconf.Host, dbconf.Port, dbconf.DBName)
-  fmt.Println(connectionString)
+  stdlog.Println(connectionString)
   return connectionString, nil
 }
 
@@ -158,11 +158,11 @@ func getAPIConfig(homedir string, apiconf *APIConfig) error {
   var b []byte
 	b, err := ioutil.ReadFile(homedir + "/config.json")
 	if err != nil {
-		fmt.Println(err)
+		errlog.Println(err)
     return err
 	}
 	json.Unmarshal(b, &apiconf)
-  fmt.Println(apiconf)
+  stdlog.Println(apiconf)
   return nil
 }
 
@@ -172,11 +172,11 @@ func pollMsg() {
     time.Sleep(time.Second * 1)
     rows, err := db.Query("SELECT id, payload FROM msg WHERE sent = false AND sendAttempts < 3 LIMIT 10000")
     if err != nil {
-      fmt.Println(err)
+      errlog.Println(err)
     }
     defer rows.Close()
     if err != nil {
-      fmt.Println(err)
+      errlog.Println(err)
     }
 
     var messageList []interface{}
@@ -192,7 +192,7 @@ func pollMsg() {
         params := make(map[string]string)
         result, err := client.Messages.CreateGroup(params)
         if err != nil {
-          fmt.Println(err)
+          errlog.Println(err)
         }
         groupId = result.GroupId
       }
@@ -200,17 +200,17 @@ func pollMsg() {
 
       err := rows.Scan(&id, &payload)
       if err != nil {
-        fmt.Println(err)
+        errlog.Println(err)
       }
       fmt.Sprintf("id: %u", id)
       _, err = db.Exec("UPDATE msg SET sendAttempts = sendAttempts + 1 WHERE id = ?", id)
       if err != nil {
-        fmt.Println(err)
+        errlog.Println(err)
         continue
       }
       err = json.Unmarshal([]byte(payload), &msgObj)
       if err != nil {
-        fmt.Println(err)
+        errlog.Println(err)
         continue
       }
 
@@ -223,20 +223,20 @@ func pollMsg() {
 
       result2, err := client.Messages.AddGroupMessage(groupId, msgParams)
       if err != nil {
-        fmt.Println(err)
+        errlog.Println(err)
         continue
       }
       for i, res := range(result2.ResultList) {
         _, err = db.Exec("UPDATE msg SET result = json_object('messageId', ?, 'groupId', ?, 'statusCode', ?, 'statusMessage', ?), sent = true WHERE id = ?", res.MessageId, groupId, res.StatusCode, res.StatusMessage, idList[i])
         if err != nil {
-          fmt.Println(err)
+          errlog.Println(err)
           continue
         }
       }
 
       _, err = client.Messages.SendGroup(groupId)
       if err != nil {
-        fmt.Println(err)
+        errlog.Println(err)
         continue
       }
     }
@@ -249,7 +249,7 @@ func pollLastReport() {
     time.Sleep(time.Second * 2)
     rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt < SUBDATE(NOW(), INTERVAL 72 HOUR) AND statusCode IN ('2000', '3000')")
     if err != nil {
-      fmt.Println(err)
+      errlog.Println(err)
     }
     defer rows.Close()
 
@@ -273,7 +273,7 @@ func pollResult() {
     time.Sleep(time.Second * 2)
     rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt > SUBDATE(NOW(), INTERVAL 72 HOUR) AND updatedAt < SUBDATE(NOW(), INTERVAL (10 * (reportAttempts + 1)) SECOND) AND reportAttempts < 10 AND statusCode IN ('2000', '3000') LIMIT 1000")
     if err != nil {
-      fmt.Println(err)
+      errlog.Println(err)
     }
     defer rows.Close()
 
@@ -301,11 +301,10 @@ func syncMsgStatus(messageIds []string, statusCode string, defaultCode string) {
   result, err := client.Messages.GetMessageList(params)
   printObj(result)
   if err != nil {
-    fmt.Println(err)
+    errlog.Println(err)
   }
 
-  for i, res := range(result.MessageList) {
-    fmt.Println(i)
+  for _, res := range(result.MessageList) {
     if res.StatusCode != statusCode {
       _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", res.StatusCode, res.MessageId, res.Reason)
       if err != nil {
@@ -324,7 +323,7 @@ func printObj(obj interface{}) {
     panic(err)
   }
   msgStr := *(*string)(unsafe.Pointer(&msgBytes))
-  fmt.Println(msgStr)
+  stdlog.Println(msgStr)
 }
 
 func init() {
@@ -339,20 +338,19 @@ func main() {
   switch goos {
     case "windows":
       daemonType = daemon.SystemDaemon
-      fmt.Println("Windows")
+      stdlog.Println("Windows")
     case "darwin":
       daemonType = daemon.UserAgent
-      fmt.Println("MAC")
+      stdlog.Println("MAC")
     case "linux":
       daemonType = daemon.SystemDaemon
-      fmt.Println("Linux")
+      stdlog.Println("Linux")
     default:
       fmt.Printf("%s.\n", goos)
   }
 
   srv, err := daemon.New(name, description, daemonType)
   if err != nil {
-    fmt.Println("test")
     errlog.Println("Error: ", err)
     os.Exit(1)
   }
@@ -362,5 +360,5 @@ func main() {
     errlog.Println(status, "\nError: ", err)
     os.Exit(1)
   }
-  fmt.Println(status)
+  stdlog.Println(status)
 }
