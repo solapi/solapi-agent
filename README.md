@@ -1,6 +1,9 @@
 # Solapi Agent
 
 ## DB 준비
+
+MYSQL 버전 5.7.14 이상을 준비해주세요.
+
 아래 내용으로 DB 및 계정을 만들어 주세요.
 ```
 CREATE DATABASE msg;
