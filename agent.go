@@ -313,7 +313,9 @@ func syncMsgStatus(messageIds []string, statusCode string, defaultCode string) {
         panic(err)
       }
     } else {
-      _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, "전송시간 초과", res.MessageId)
+      if defaultCode != "" {
+        _, err = db.Exec("UPDATE msg SET result = json_set(result, '$.statusCode', ?, '$.statusMessage', ?), updatedAt = NOW() WHERE messageId = ?", defaultCode, "전송시간 초과", res.MessageId)
+      }
     }
   }
 }
