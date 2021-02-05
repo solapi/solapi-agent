@@ -233,13 +233,6 @@ func pollMsg() {
         continue
       }
 
-      type Message struct {
-        country string
-        subject string
-        imageId string
-        file string
-      }
-
       file := msgObj["file"]
       if file != nil {
         // upload file
