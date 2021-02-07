@@ -8,6 +8,7 @@ CREATE TABLE msg (
   `from` VARCHAR(20) AS (payload->>'$.from') STORED,
   groupId VARCHAR(255) AS (result->>'$.groupId') STORED,
   messageId VARCHAR(255) AS (result->>'$.messageId') STORED,
+  status VARCHAR(20) AS (result->>'$.status') STORED,
   statusCode VARCHAR(255) AS (result->>'$.statusCode') STORED,
   statusMessage VARCHAR(255) AS (result->>'$.statusMessage') STORED,
   payload JSON,
@@ -21,6 +22,7 @@ CREATE TABLE msg (
   KEY (`from`),
   KEY (groupId),
   KEY (messageId),
+  KEY (status),
   KEY (statusCode),
   KEY (sent)
 ) DEFAULT CHARSET=utf8mb4;
