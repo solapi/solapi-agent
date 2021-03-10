@@ -1,9 +1,11 @@
 # Solapi Agent
 
+## 개요
+DB INSERT로 카카오톡 및 문자를 발송 할 수 있도록 go언어로 작성되었습니다.
+빌드되어 올려져 있는 agent파일은 Ubuntu 16.04 환경에서 빌드되었으며 다른 버전의 OS에서는 정상적으로 작동되지 않으로 go컴파일러로 새로 빌드하셔야 합니다.
+
 ## DB 준비
-
 > MySQL 버전 5.7.14 이상을 준비해주세요.
-
 > 혹은 MariaDB 버전 10.2 이상을 준비해주세요.
 
 아래 내용으로 DB 및 계정을 만들어 주세요.
@@ -12,7 +14,7 @@ CREATE DATABASE msg;
 CREATE USER 'msg'@'localhost' IDENTIFIED BY 'msg';
 GRANT ALL PRIVILEGES ON msg.* TO 'msg'@'localhost';
 ```
-아래 스키마로 테이블을 만들어 주세요.
+아래 스키마로 테이블을 만들어 주세요. (MariaDB는 create_table_maria.sql 참고)
 ```
 CREATE TABLE msg (
   id integer  AUTO_INCREMENT primary key,
@@ -44,9 +46,15 @@ CREATE TABLE msg (
 ) DEFAULT CHARSET=utf8mb4;
 ```
 
+## 소스 코드 빌드
+아래 명령으로 빌드하면 agent 실행파일이 생성됩니다.
+```
+go build agent.go
+```
+
 ## 서비스 데몬 설치
 
-/opt/agent 디렉토리를 만들고 아래로 에이전트 실행파일을 복사합니다.
+빌드된 agent 파일을 /opt/agent 디렉토리를 만들고 아래로 복사합니다.
 ```
 mkdir -p /opt/agent
 cp ./agent /opt/agent/agent
@@ -121,10 +129,4 @@ export AGENT_HOME=/home/ubuntu/agent
 시스템에서 제거
 ```
 ./agent remove
-```
-
-## 소스 코드 빌드 방법
-아래 명령으로 빌드하면 agent 실행파일이 생성됩니다.
-```
-go build agent.go
 ```
