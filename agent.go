@@ -190,7 +190,7 @@ func getAPIConfig(homedir string, apiconf *APIConfig) error {
 func pollMsg() {
   for {
     time.Sleep(time.Second * 1)
-    rows, err := db.Query("SELECT id, payload FROM msg WHERE sent = false AND createdAt >= SUBDATE(NOW(), INTERVAL 24 HOUR) AND sendAttempts < 3 LIMIT 10000")
+    rows, err := db.Query("SELECT id, payload FROM msg WHERE sent = false AND scheduledAt <= NOW() AND scheduledAt >= SUBDATE(NOW(), INTERVAL 24 HOUR) AND sendAttempts < 3 LIMIT 10000")
     if err != nil {
       errlog.Println("[메시지발송] DB Query ERROR:", err)
       time.Sleep(time.Second * 5)
