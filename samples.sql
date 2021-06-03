@@ -51,13 +51,56 @@ INSERT INTO msg(payload) VALUES(json_object(
 INSERT INTO msg(payload) VALUES(json_object(
   'to', '01000000001',
   'from', '020000001',
-  'text', '테스트 메시지',
-  'country', '82',
-  'subject', '대체 발송',
-  'text', '친구톡 테스트입니다.',
-  'autoTypeDetect', true,
+  'text', '홍길동님 가입을 환영합니다.',
+  'subject', '대체 발송시 LMS 제목',
   'kakaoOptions', json_object(
     'pfId', 'KA01PF1903260033550428GGGGGGGGGG',
+    'templateId', 'KA01TP1903260033550428BBBBBBBBBB',
+    'buttons', json_array(json_object(
+      'buttonName', '홈페이지',
+      'buttonType', 'WL',
+      'linkPc', 'https://www.example.com',
+      'linkMo', 'https://m.example.com'
+    ), json_object(
+      'buttonName', '앱 링크',
+      'buttonType', 'AL',
+      'linkIos', 'iosscheme://',
+      'linkAnd', 'androidscheme://'
+    ))
+  )
+));
+
+-- 카카오 친구톡 발송
+INSERT INTO msg(payload) VALUES(json_object(
+  'to', '01000000001',
+  'from', '020000001',
+  'subject', '대체 발송시 LMS 제목',
+  'kakaoOptions', json_object(
+    'pfId', 'KA01PF1903260033550428GGGGGGGGGG',
+    'buttons', json_array(json_object(
+      'buttonName', '홈페이지',
+      'buttonType', 'WL',
+      'linkPc', 'https://www.example.com',
+      'linkMo', 'https://m.example.com'
+    ), json_object(
+      'buttonName', '앱 링크',
+      'buttonType', 'AL',
+      'linkIos', 'iosscheme://',
+      'linkAnd', 'androidscheme://'
+    ))
+  )
+));
+
+-- 해외 카카오 알림톡 발송
+INSERT INTO msg(payload) VALUES(json_object(
+  'country', '1', -- 국가번호 입력
+  'to', '01000000001',
+  'from', '020000001',
+  'text', '홍길동님 가입을 환영합니다.',
+  'subject', '대체 발송시 LMS 제목',
+  'kakaoOptions', json_object(
+    'pfId', 'KA01PF1903260033550428GGGGGGGGGG',
+    'templateId', 'KA01TP1903260033550428BBBBBBBBBB',
     'buttons', json_array(json_object(
       'buttonName', '홈페이지',
       'buttonType', 'WL',
