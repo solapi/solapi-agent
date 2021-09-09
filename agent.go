@@ -38,6 +38,7 @@ type APIConfig struct {
   Domain     string `json:"Domain"`
   Prefix     string `json:"Prefix"`
   AppId      string `json:"AppId"`
+  AllowDuplicates bool `json:"AllowDuplicates"`
 }
 
 const (
@@ -209,6 +210,9 @@ func pollMsg() {
       var msgObj map[string]interface{}
       if count == 0 {
         params := make(map[string]string)
+        if apiconf.AllowDuplicates == true {
+          params["allowDuplicates"] = "true"
+        }
         result, err := client.Messages.CreateGroup(params)
         if err != nil {
           errlog.Println(err)
