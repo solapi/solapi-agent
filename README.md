@@ -88,13 +88,14 @@ config.json 예시
   "APISecret": "FSD4ER2WYPZQVDBPKMLOZVAWTGYBDTRW",
   "Protocol": "https",
   "Domain": "api.solapi.com",
-  "Prefix": "",
-  "AppId": ""
+  "Prefix": "", // 사용안함
+  "AppId": "", // 사용안함
+  "AllowDuplicates": true // 동시간대 중복 발송 허용
 }
 ```
 
 ## 서비스 데몬 실행
-서비스 데몬을 시스템에 등록 및 실행합니다.
+서비스 데몬을 시스템에 등록 및 실행합니다. (모든 명령은 root 권한으로 실행해야 합니다.)
 ```
 ./agent install
 ./agent start
