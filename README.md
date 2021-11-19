@@ -92,7 +92,7 @@ config.json 예시
   "Domain": "api.solapi.com",
   "Prefix": "",
   "AppId": "",
-  "AllowDuplicates": true // 동시간대 중복 발송 허용
+  "AllowDuplicates": true
 }
 ```
 Prefix, AppId는 비워두시면 됩니다.
