@@ -90,11 +90,13 @@ config.json 예시
   "APISecret": "FSD4ER2WYPZQVDBPKMLOZVAWTGYBDTRW",
   "Protocol": "https",
   "Domain": "api.solapi.com",
-  "Prefix": "", // 사용안함
-  "AppId": "", // 사용안함
+  "Prefix": "",
+  "AppId": "",
   "AllowDuplicates": true // 동시간대 중복 발송 허용
 }
 ```
+Prefix, AppId는 비워두시면 됩니다.
+AllowDuplicates값이 true이면 동시간대 같은 수신번호로 여러건 발송이 가능하고, false이면 한건만 발송되고 나머지는 중복건으로 발송 실패됩니다.
 
 ## 서비스 데몬 실행
 서비스 데몬을 시스템에 등록 및 실행합니다. (모든 명령은 root 권한으로 실행해야 합니다.)
