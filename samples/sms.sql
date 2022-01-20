@@ -46,3 +46,12 @@ INSERT INTO msg(payload) VALUES(json_object(
   'text', '테스트 메시지',
   'type', 'SMS'
 ));
+
+-- 해외 발송(SMS만 가능)
+INSERT INTO msg(payload) VALUES(json_object(
+  'country', '1', -- 국가번호 입력
+  'to', '01000000001', -- 현지 전화번호 입력
+  'from', '020000001',
+  'text', '테스트 메시지',
+  'type', 'SMS'
+));
