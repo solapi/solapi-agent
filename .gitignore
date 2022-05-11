@@ -2,3 +2,5 @@ config.json
 db.json
 logs/
 *.real.sql
+
+.idea
