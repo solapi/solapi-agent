@@ -51,7 +51,7 @@ CREATE TABLE msg (
 ## 소스 코드 빌드
 아래 명령으로 빌드하면 agent 실행파일이 생성됩니다.
 ```
-go build agent.go
+go build ./cmd/agent/agent.go
 ```
 
 ## 서비스 데몬 설치
