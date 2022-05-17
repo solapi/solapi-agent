@@ -2,7 +2,7 @@
 
 ## 개요
 DB INSERT로 카카오톡 및 문자를 발송 할 수 있도록 go언어로 작성되었습니다.
-빌드되어 올려져 있는 agent파일은 Ubuntu 16.04 환경에서 빌드되었으며 다른 버전의 OS에서는 정상적으로 작동되지 않으로 go컴파일러로 새로 빌드하셔야 합니다.
+현재 Agent는 go 컴파일러로 새로 빌드하셔야 합니다.
 
 ## DB 준비
 > MySQL 버전 5.7.14 이상을 준비해주세요.
@@ -51,7 +51,7 @@ CREATE TABLE msg (
 ## 소스 코드 빌드
 아래 명령으로 빌드하면 agent 실행파일이 생성됩니다.
 ```
-go build agent.go
+go build ./cmd/agent/agent.go
 ```
 
 ## 서비스 데몬 설치
