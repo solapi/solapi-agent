@@ -299,7 +299,7 @@ func pollMsg() {
 func pollLastReport() {
 	for {
 		time.Sleep(time.Second * 1)
-		rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt < SUBDATE(NOW(), INTERVAL 72 HOUR) AND status = 'PENDING'")
+		rows, err := db.Query("SELECT id, messageId, statusCode FROM msg WHERE sent = true AND createdAt < SUBDATE(NOW(), INTERVAL 72 HOUR) AND status = 'PENDING' LIMIT 100")
 		if err != nil {
 			errlog.Println("[마지막 리포트] DB Query ERROR:", err)
 			time.Sleep(time.Second * 60)
