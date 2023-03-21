@@ -55,3 +55,20 @@ INSERT INTO msg(payload) VALUES(json_object(
     )
   )
 ));
+
+-- 카카오 알림톡 발송 (문자대체발송 끄기)
+INSERT INTO msg(payload) VALUES(json_object(
+  'to', '01000000001',
+  'from', '0200000001',
+  'kakaoOptions', json_object(
+    'pfId', 'KA01PF1903260033550428GGGGGGGGGG', -- 카카오톡 채널의 아이디
+    'templateId', 'KA01TP1903260033550428BBBBBBBBBB', -- 알림톡 템플릿의 아이디
+    -- 변수명 / 변수값
+    'variables', json_object(
+      '#{변수1}', '변수값 1'
+      '#{변수2}', '변수값 2'
+      '#{버튼변수}', '변수값'
+    ),
+    'disableSms', TRUE
+  )
+));
