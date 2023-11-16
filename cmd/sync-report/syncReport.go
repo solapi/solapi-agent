@@ -136,7 +136,7 @@ func main() {
 		"Prefix":    apiconf.Prefix,
 	}
 
-	rows, err := db.Query("SELECT id, messageId FROM msg WHERE sent = true AND status = 'PENDING'")
+	rows, err := db.Query("SELECT id, messageId FROM msg WHERE sent = true AND status != 'COMPLETE'")
 	if err != nil {
 		fmt.Println("DB Query ERROR:", err)
 		return
