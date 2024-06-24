@@ -74,6 +74,7 @@ func syncMsgStatus(messageIds []string) {
 	fmt.Println("메시지 상태 동기화:", len(messageIds), "건")
 
 	result, err := client.Messages.GetMessageList(params)
+
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -154,6 +155,10 @@ func main() {
 	for rows.Next() {
 		_ = rows.Scan(&id, &messageId)
 		messageIds = append(messageIds, messageId)
+    if len(messageIds) > 100 {
+		  syncMsgStatus(messageIds)
+      messageIds = nil
+    }
 	}
 	if len(messageIds) > 0 {
 		syncMsgStatus(messageIds)
