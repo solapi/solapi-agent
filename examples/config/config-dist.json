@@ -1,6 +1,6 @@
 {
-  "APIKey": "NCSVYGF1IK5PUKDA",
-  "APISecret": "FSD4ER2WYPZQVDBPKMLOZVAWTGYBDTRW",
+  "APIKey": "YOUR API KEY HERE",
+  "APISecret": "YOUR API SECRET KEY HERE",
   "Protocol": "https",
   "Domain": "api.solapi.com",
   "Prefix": "",
