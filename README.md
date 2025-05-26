@@ -86,8 +86,8 @@ vi /opt/agent/config.json
 config.json 예시
 ```
 {
-  "APIKey": "NCSVYGF1IK5PUKDA",
-  "APISecret": "FSD4ER2WYPZQVDBPKMLOZVAWTGYBDTRW",
+  "APIKey": "발급받은 API Key 입력",
+  "APISecret": "발급받은 API Secret Key 입력",
   "Protocol": "https",
   "Domain": "api.solapi.com",
   "Prefix": "",
