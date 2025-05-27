@@ -1,5 +1,9 @@
 # Solapi Agent
 
+## 🛑 주의사항 🛑
+* 더 이상 솔라피 DB 연동형 에이전트는 유지보수 되지 않습니다.
+* 문서를 통해 [API 개발연동](https://developers.solapi.com/references/messages/sendManyDetail)을 진행해주시거나, [SOLAPI Github](https://github.com/solapi) 내 SDK를 통해 개발연동을 진행해주시기 바랍니다.
+
 ## 개요
 DB INSERT로 카카오톡 및 문자를 발송 할 수 있도록 go언어로 작성되었습니다.  
 현재 Agent는 go 컴파일러(go 1.18 기준)로 새로 빌드하셔야 합니다.
